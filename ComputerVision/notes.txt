@@ -1,0 +1,27 @@
+Atv01
+
+1. Fazer imagem + plot pra mostrar que nao muda
+
+2. gerar as imagens artificialmente. Nao sao iguais, por que existem mais cantos (transições entre branco e preto) na segunda imagem e filtro age apenas nas transições.
+
+3. passar varias vezes (codar e mostrar, depois discutir)
+
+4. 
+
+5. imagem 1 no 0,0 do mundo. tem a dedução no vídeo.
+
+6. <Cancelada>
+
+7. Encontrar as do objeto para a camera; c) 6 pontos
+
+8. Criar a imagem
+
+9. a) imagem * função == imagem * transformada de fourier da função.
+
+10. Pode provar por demonstração.
+
+Atv02
+
+9. Pode usar qualquer algoritmo pra achar os pontos da borda (dor in dor out fica só como sugestão)
+
+13 em diante fica opcional.
