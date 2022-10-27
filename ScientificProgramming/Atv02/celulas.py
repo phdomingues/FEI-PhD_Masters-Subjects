@@ -25,30 +25,30 @@ class Celulas:
     # === SETTERS === #
     @x.setter
     def x(self, novo_x:int) -> None:
-        if novo_x < 0:
+        while novo_x < 0:
             novo_x = cabeca.Cabeca.LARGURA - novo_x
-        self._x = novo_x
+        self._x = novo_x % cabeca.Cabeca.LARGURA # Limita pela largura (quem passar da a volta)
     @y.setter
     def y(self, novo_y:int) -> None:
-        if novo_y < 0:
+        while novo_y < 0:
             novo_y = cabeca.Cabeca.ALTURA - novo_y
-        self._y = novo_y
+        self._y = novo_y % cabeca.Cabeca.ALTURA # Mesmo para a altura
 
 class CelulasBoca(Celulas):
     def __init__(self, x:int, y:int) -> None:
         super().__init__(x, y, Color.RED)
 
 class Leucocitos(Celulas):
-    def __init__(self) -> None:
-        super().__init__(Color.YELLOW)
+    def __init__(self, x:int, y:int) -> None:
+        super().__init__(x, y, Color.YELLOW)
         self._velocidade = 1
     
     def mover(self) -> None:
-        movimento = sample([-1,1])*self._velocidade
+        movimento = sample([-1,1], 1)[0]*self._velocidade
         if randint(0,1):
             self.x += movimento
         else:
-            self.y += movimento
+            self.y += movimento 
 
 class CelulasOculares(Celulas):
     def __init__(self, x:int, y:int) -> None:

@@ -13,11 +13,11 @@ class Virus:
         self.y = y
     # === METODOS === #
     def mover(self) -> None:
-        movimento = sample([-1,1])*self._velocidade
+        movimento = sample([-1,1], 1)[0]*self._velocidade
         if randint(0,1):
-            self._x += movimento
+            self.x += movimento
         else:
-            self._y += movimento    
+            self.y += movimento    
     # === GETTERS === #
     @property
     def x(self) -> int:
@@ -31,21 +31,20 @@ class Virus:
     # === SETTERS === #
     @x.setter
     def x(self, novo_x:int) -> None:
-        if novo_x < 0:
+        while novo_x < 0:
             novo_x = cabeca.Cabeca.LARGURA - novo_x
-        self._x = novo_x
+        self._x = novo_x % cabeca.Cabeca.LARGURA
     @y.setter
     def y(self, novo_y:int) -> None:
-        if novo_y < 0:
+        while novo_y < 0:
             novo_y = cabeca.Cabeca.ALTURA - novo_y
-        self._y = novo_y
+        self._y = novo_y % cabeca.Cabeca.ALTURA
 
 class Influenza(Virus):
-    def __init__(self, celula:bool) -> None:
+    def __init__(self, x:int, y:int) -> None:
         super().__init__(
             velocidade=1,
             cor=Color.BLUE,
-            x=15,
-            y=15
+            x=x,
+            y=y
         )
-        self._celula = celula

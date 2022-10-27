@@ -6,8 +6,8 @@ from typing import List
 import numpy as np
 # Local
 import celulas
+import virus
 from render import Color
-from virus import Virus
 
 class Cabeca:
     LARGURA = 60
@@ -17,8 +17,9 @@ class Cabeca:
         self.mapa = [[Color.WHITE for _ in range(Cabeca.LARGURA)] for _ in range(Cabeca.ALTURA)]
         self._celulas:List[celulas.Celulas] = []
         self._leucocitos:List[celulas.Leucocitos] = []
-        self._virus:List[Virus] = []
+        self._virus:List[virus.Virus] = []
         self._inicializa_celulas()
+        self._inicializa_virus()
         self._atualiza()
 
     def _atualiza(self) -> None:
@@ -55,6 +56,18 @@ class Cabeca:
         self._cria_nariz()
         self._gera_leucocitos()
     
+    def _inicializa_virus(self) -> None:
+        xmin = 0; xmax = Cabeca.LARGURA
+        ymin = 0; ymax = Cabeca.ALTURA
+        n_virus = 5
+        for _ in range(n_virus):
+            self._virus.append(
+                virus.Influenza(
+                    np.random.randint(xmin, xmax),
+                    np.random.randint(ymin, ymax)
+                )
+            )
+    
     def _cria_olho(self) -> None:
         xmin = 7; xmax = 12
         ymin = 2; ymax = 6
@@ -63,12 +76,26 @@ class Cabeca:
                 self._celulas.append(celulas.CelulasOculares(x, y))
                 self._celulas.append(celulas.CelulasOculares(Cabeca.LARGURA-x, y))
     def _cria_boca(self) -> None:
-        pass
+        xmin = 20; xmax = 40
+        ymin = 22; ymax = 24
+        for x in range(xmin, xmax+1):
+            for y in range(ymin, ymax+1):
+                self._celulas.append(celulas.CelulasBoca(x, y))
     def _cria_nariz(self) -> None:
-        xmin = 7; xmax = 12
-        ymin = 2; ymax = 6
+        xmin = 28; xmax = 32
+        ymin = 12; ymax = 15
         for x in range(xmin, xmax+1):
             for y in range(ymin, ymax+1):
                 self._celulas.append(celulas.CelulasNasais(x, y))
     def _gera_leucocitos(self) -> None:
-        pass
+        xmin = 0; xmax = Cabeca.LARGURA
+        ymin = 0; ymax = Cabeca.ALTURA
+        n_leucocitos = 10
+        for _ in range(n_leucocitos):
+            self._leucocitos.append(
+                celulas.Leucocitos(
+                    np.random.randint(xmin, xmax),
+                    np.random.randint(ymin, ymax)
+                )
+            )
+            
