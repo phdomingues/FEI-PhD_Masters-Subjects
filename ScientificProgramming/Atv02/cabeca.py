@@ -14,16 +14,19 @@ class Cabeca:
     ALTURA = 30
 
     def __init__(self) -> None:
-        self.mapa = [[Color.WHITE for _ in range(Cabeca.LARGURA)] for _ in range(Cabeca.ALTURA)]
         self._celulas:List[celulas.Celulas] = []
         self._leucocitos:List[celulas.Leucocitos] = []
         self._virus:List[virus.Virus] = []
+        self.mapa = self._reinicia_mapa()
         self._inicializa_celulas()
         self._inicializa_virus()
-        self._atualiza()
+        self.atualiza()
+        
+    def _reinicia_mapa(self):
+        self.mapa = [[Color.WHITE for _ in range(Cabeca.LARGURA)] for _ in range(Cabeca.ALTURA)]
 
-    def _atualiza(self) -> None:
-        novo_mapa = deepcopy(self.mapa)
+    def atualiza(self) -> None:
+        self._reinicia_mapa()
         self._atualiza_celulas()
         self._atualiza_virus()
         self._atualiza_leucocitos()
@@ -34,6 +37,8 @@ class Cabeca:
     def _atualiza_virus(self) -> None:
         for virus in self._virus:
             virus.mover()
+            if self.mapa[virus.y][virus.x] in (c.cor for c in [celulas.CelulasOculares, celulas.CelulasNasais, celulas.CelulasBoca]):
+                print("Colisao!")
             self.mapa[virus.y][virus.x] = virus.cor
     def _atualiza_leucocitos(self) -> None:
         for leucocito in self._leucocitos:
@@ -41,14 +46,14 @@ class Cabeca:
             self.mapa[leucocito.y][leucocito.x] = leucocito.cor
 
     def desenhaCabeca(self) -> None:
-        os.system('cls') # Clear output
+        os.system('clear') # Clear output
         map2colors = np.vectorize(Color.color2ascii)
         mapa_cores = map2colors(self.mapa)
         for row in mapa_cores:
             for value in row:
                 print(value+' ', end='')
             print(Color.color2ascii(Color.END_COLOR))
-            time.sleep(1e-5)
+            # time.sleep(1e-5)
 
     def _inicializa_celulas(self) -> None:
         self._cria_olho()

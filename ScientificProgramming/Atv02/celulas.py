@@ -6,12 +6,18 @@ import cabeca
 from render import Color
 
 class Celulas:
-    def __init__(self, x:int, y:int, cor:int) -> None:
+    """
+    Classe base para qualquer tipo de celula a ser simulada, estatica ou dinamica.
+        
+    O atributo _cor deve ser declarado nas subclasses de forma estatica, e caso não seja, 
+    Color.UNKNOWN sera interpretado por padrao.
+    """
+    _cor = Color.UNKNOWN
+    def __init__(self, x:int, y:int) -> None:
         # Aproveitamos os setters para atribuir os valores, ja criando os 
         # atributos privados (_ na frente) e fazer as validacoes necessarias
         self.x = x
         self.y = y
-        self._cor = cor
     # === GETTERS === #
     @property
     def x(self) -> int:
@@ -19,9 +25,10 @@ class Celulas:
     @property
     def y(self) -> int:
         return self._y
+    @classmethod
     @property
-    def cor(self) -> Color:
-        return self._cor
+    def cor(cls) -> Color:
+        return cls._cor
     # === SETTERS === #
     @x.setter
     def x(self, novo_x:int) -> None:
@@ -35,12 +42,14 @@ class Celulas:
         self._y = novo_y % cabeca.Cabeca.ALTURA # Mesmo para a altura
 
 class CelulasBoca(Celulas):
+    _cor = Color.RED # Declara cor como um atributo estatico
     def __init__(self, x:int, y:int) -> None:
-        super().__init__(x, y, Color.RED)
+        super().__init__(x, y)
 
 class Leucocitos(Celulas):
+    _cor = Color.YELLOW # Declara cor como um atributo estatico
     def __init__(self, x:int, y:int) -> None:
-        super().__init__(x, y, Color.YELLOW)
+        super().__init__(x, y)
         self._velocidade = 1
     
     def mover(self) -> None:
@@ -51,9 +60,11 @@ class Leucocitos(Celulas):
             self.y += movimento 
 
 class CelulasOculares(Celulas):
+    _cor = Color.GREEN # Declara cor como um atributo estatico
     def __init__(self, x:int, y:int) -> None:
-        super().__init__(x, y, Color.GREEN)
+        super().__init__(x, y)
 
 class CelulasNasais(Celulas):
+    _cor = Color.PURPLE # Declara cor como um atributo estatico
     def __init__(self, x:int, y:int) -> None:
-        super().__init__(x, y, Color.PURPLE)
+        super().__init__(x, y)

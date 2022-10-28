@@ -11,6 +11,7 @@ class Color(Enum):
     PURPLE = auto()
     WHITE = auto()
     END_COLOR = auto()
+    UNKNOWN = auto()
 
     @staticmethod
     def color2ascii(color:Color) -> str:
@@ -22,6 +23,7 @@ class Color(Enum):
             Color.PURPLE : "\033[0;45m",
             Color.WHITE : "\033[0;47m",
             Color.YELLOW : "\033[1;43m",
-            Color.END_COLOR : "\033[0m"
+            Color.END_COLOR : "\033[0m",
+            Color.UNKNOWN: ""
         }
         return proxy.get(color, '')
