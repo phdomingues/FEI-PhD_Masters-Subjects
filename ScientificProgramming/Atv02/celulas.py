@@ -1,4 +1,5 @@
 # Std Lib
+import time
 from datetime import datetime
 from random import sample,randint
 # Local
@@ -50,14 +51,14 @@ class Leucocitos(Celulas):
     _cor = Color.YELLOW # Declara cor como um atributo estatico
     def __init__(self, x:int, y:int) -> None:
         super().__init__(x, y)
+        self.nascimento = time.time()
         self._velocidade = 1
     
     def mover(self) -> None:
-        movimento = sample([-1,1], 1)[0]*self._velocidade
-        if randint(0,1):
-            self.x += movimento
-        else:
-            self.y += movimento 
+        movimento_x = sample([-1,1], 1)[0]*self._velocidade
+        movimento_y = sample([-1,1], 1)[0]*self._velocidade
+        self.x += movimento_x
+        self.y += movimento_y
 
 class CelulasOculares(Celulas):
     _cor = Color.GREEN # Declara cor como um atributo estatico

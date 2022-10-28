@@ -7,6 +7,7 @@ from render import Color
 class Virus:
     # === CONSTRUTOR === #
     def __init__(self, velocidade:int, cor:Color, x:int, y:int) -> None:
+        self.duplicado = False
         self._velocidade = velocidade
         self._cor = cor
         self.x = x
