@@ -12,6 +12,8 @@ class Jogo:
     def __init__(self, tamanho:int=3):
         self.celulas = ['X', 'O', '-']
         self.jogador = 0
+        if tamanho < 3:
+            ValueError(f"Tamanho do tabuleiro deve ser >= 3, valor {tamanho} invalido")
         self.tamanho = tamanho
         self.reinicia_tabuleiro()
         
@@ -37,18 +39,18 @@ class Jogo:
         # Aplica a jogada
         self.tabuleiro[plano][linha][coluna] = self.jogador
         # Verifica vitoria
-        status = self.verifica_status_jogo((plano,linha,coluna))
+        status = self._verifica_status_jogo((plano,linha,coluna))
         if status == Status.EMPATE:
             print(f"Jogo finalizado... Empate")
         elif status == Status.FINALIZADO:
             print(f"Jogo finalizado... Vitoria do jogador '{self.celulas[self.jogador]}'!")
-        # else:
-        #     # Alterna o jogador
-        #     self.jogador = (self.jogador+1)%2
+        else:
+            # Alterna o jogador
+            self.jogador = (self.jogador+1)%2
     
-    def verifica_status_jogo(self, ultima_jogada:Tuple[int]) -> Status:
+    def _verifica_status_jogo(self, ultima_jogada:Tuple[int]) -> Status:
         # Vitoria na ultima jogada
-        if self.verifica_vitoria(ultima_jogada):
+        if self._verifica_vitoria(ultima_jogada):
             return Status.FINALIZADO
         # Jogo finalizado (nenhum espaco livre para jogadas)
         if len(np.where(self.tabuleiro.flatten()==2)[0]) == 0:
@@ -56,7 +58,7 @@ class Jogo:
         # Jogo ainda tem jogadas para serem feitas
         return Status.EM_ANDAMENTO
     
-    def verifica_vitoria(self, jogada:Tuple[int]) -> bool:
+    def _verifica_vitoria(self, jogada:Tuple[int]) -> bool:
         jp, jl, jc = jogada
         jogador = self.tabuleiro[jp][jl][jc]
         # Vitoria no mesmo plano
@@ -64,6 +66,7 @@ class Jogo:
         # Variavel auxiliar (Matriz de indices)
         # indice indexado como: [<indice Linha/indice Coluna da matriz>, <linha da matriz>, <coluna da matriz>]
         superficie_idxs = np.indices((self.tamanho,self.tamanho)) # Matriz com os indices (i,j) de todos os elementos
+        superficie_idxs_3d = np.indices((self.tamanho,self.tamanho, self.tamanho)) # Matriz com os indices (i,j,k) de todos os elementos
         # Funcao que verifica se houve pontuacao
         pontuou = lambda jogador, superficie, filtro: sum(superficie[filtro] == jogador) == self.tamanho
         # [1] Superficie do mesmo plano
@@ -81,13 +84,26 @@ class Jogo:
         superficie = self.tabuleiro[:,:,jc]
         vitoria |= pontuou(jogador, superficie, superficie_idxs[0,:,:]-superficie_idxs[1,:,:] == (superficie_idxs[0,:,:]-superficie_idxs[1,:,:])[jp,jl]) # Mesma diagonal (esquerda p/ direita) na superficie
         vitoria |= pontuou(jogador, superficie, superficie_idxs[0,:,:]+superficie_idxs[1,:,:] == (superficie_idxs[0,:,:]+superficie_idxs[1,:,:])[jp,jl]) # Mesma diagonal (direita p/ esquerda) na superficie
-        # Corte Diagonal do cubo
-        superficie_idxs = np.indices((self.tamanho,self.tamanho, self.tamanho))
-        filtro = (superficie_idxs[1,:,:,:] + superficie_idxs[2,:,:,:]) == (superficie_idxs[1,:,:,:]+superficie_idxs[2,:,:,:])[jp,jl,jc]
+        # [4] Corte Diagonal 1 do cubo
+        filtro = (superficie_idxs_3d[1,:,:,:] + superficie_idxs_3d[2,:,:,:]) == (superficie_idxs_3d[1,:,:,:] + superficie_idxs_3d[2,:,:,:])[jp,jl,jc] # Extrai o plano diagonal
+        try:
+            superficie = self.tabuleiro[filtro].reshape((self.tamanho,self.tamanho)) # Tenta gerar o semi-plano NxN
+            vitoria |= pontuou(jogador, superficie, superficie_idxs[0,:,:]-superficie_idxs[1,:,:] == (superficie_idxs[0,:,:]-superficie_idxs[1,:,:])[jp, jl]) # Mesma diagonal (esquerda p/ direita) na superficie
+            vitoria |= pontuou(jogador, superficie, superficie_idxs[0,:,:]+superficie_idxs[1,:,:] == (superficie_idxs[0,:,:]+superficie_idxs[1,:,:])[jp, jl]) # Mesma diagonal (direita p/ esquerda) na superficie
+        except ValueError: # Caso o plano seja menor do que self.tamanho x self.tamanho
+            pass # Não há possibilidade de ter feito ponto, apenas ignore
+        # [5] Corte Diagonal 2 do cubo
+        filtro = (superficie_idxs_3d[1,:,:,:] - superficie_idxs_3d[2,:,:,:]) == (superficie_idxs_3d[1,:,:,:] - superficie_idxs_3d[2,:,:,:])[jp,jl,jc]
+        try:
+            superficie = self.tabuleiro[filtro].reshape((self.tamanho,self.tamanho))
+            vitoria |= pontuou(jogador, superficie, superficie_idxs[0,:,:]-superficie_idxs[1,:,:] == (superficie_idxs[0,:,:]-superficie_idxs[1,:,:])[jp, int((jl+jc)/2)]) # Mesma diagonal (esquerda p/ direita) na superficie
+            vitoria |= pontuou(jogador, superficie, superficie_idxs[0,:,:]+superficie_idxs[1,:,:] == (superficie_idxs[0,:,:]+superficie_idxs[1,:,:])[jp, int((jl+jc)/2)]) # Mesma diagonal (direita p/ esquerda) na superficie
+        except ValueError:
+            pass
         return vitoria
         
 jogo = Jogo(tamanho=3)
-jogo.jogar(0,2,0)
-jogo.jogar(1,2,1)
+jogo.jogar(0,0,0)
+jogo.jogar(1,1,1)
 jogo.jogar(2,2,2)
 jogo.exibir_tabuleiro()
