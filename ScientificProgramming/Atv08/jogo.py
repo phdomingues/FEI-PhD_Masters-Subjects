@@ -7,12 +7,18 @@ import numpy as np
 # Local
 import inteligencia_artificial
 
-class Status(Enum):
-    EM_ANDAMENTO = auto()
-    EMPATE = auto()
-    FINALIZADO = auto()
 
 class Jogo:
+    class Status(Enum):
+        EM_ANDAMENTO = 0
+        EMPATE = 1
+        VITORIA_X = 2
+        VITORIA_O = 3
+    class JogoFinalizado(RuntimeError):
+        def __init__(self, status: Jogo.Status, *args: object) -> None:
+            self.status = status
+            super().__init__(*args)
+
     def __init__(self, tamanho:int=3):
         self.celulas = ['X', 'O', '-']
         self.jogador = 0
@@ -50,23 +56,21 @@ class Jogo:
         self.tabuleiro[plano][linha][coluna] = self.jogador
         # Verifica vitoria
         status = self._verifica_status_jogo((plano,linha,coluna))
-        if status == Status.EMPATE:
-            print(f"Jogo finalizado... Empate")
-        elif status == Status.FINALIZADO:
-            print(f"Jogo finalizado... Vitoria do jogador '{self.celulas[self.jogador]}'!")
+        if status in [self.Status.EMPATE, self.Status.VITORIA_O, self.Status.VITORIA_X]:
+            raise self.JogoFinalizado(status)
         else:
             # Alterna o jogador
             self.jogador = (self.jogador+1)%2
     
-    def _verifica_status_jogo(self, ultima_jogada:Tuple[int]) -> Status:
+    def _verifica_status_jogo(self, ultima_jogada:Tuple[int]) -> Jogo.Status:
         # Vitoria na ultima jogada
         if self._verifica_vitoria(ultima_jogada):
-            return Status.FINALIZADO
+            return self.Status.VITORIA_X if self.jogador == 0 else self.Status.VITORIA_O
         # Jogo finalizado (nenhum espaco livre para jogadas)
         if len(np.where(self.tabuleiro.flatten()==2)[0]) == 0:
-            return Status.EMPATE
+            return self.Status.EMPATE
         # Jogo ainda tem jogadas para serem feitas
-        return Status.EM_ANDAMENTO
+        return self.Status.EM_ANDAMENTO
     
     def _verifica_vitoria(self, jogada:Tuple[int]) -> bool:
         jp, jl, jc = jogada
