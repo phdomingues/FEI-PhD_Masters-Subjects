@@ -1,7 +1,11 @@
 from __future__ import annotations
+# Std. lib
 from enum import Enum, auto
 from typing import Tuple
+# 3rd. party
 import numpy as np
+# Local
+import inteligencia_artificial
 
 class Status(Enum):
     EM_ANDAMENTO = auto()
@@ -16,6 +20,12 @@ class Jogo:
             ValueError(f"Tamanho do tabuleiro deve ser >= 3, valor {tamanho} invalido")
         self.tamanho = tamanho
         self.reinicia_tabuleiro()
+
+    def copy(self) -> Jogo:
+        copia_jogo = Jogo(self.tamanho)
+        copia_jogo.tabuleiro = self.tabuleiro.copy()
+        copia_jogo.jogador = self.jogador
+        return copia_jogo
         
     def reinicia_tabuleiro(self):
         self.tabuleiro = np.ones((self.tamanho,self.tamanho,self.tamanho), dtype=int)*2
@@ -103,7 +113,11 @@ class Jogo:
         return vitoria
         
 jogo = Jogo(tamanho=3)
+ia = inteligencia_artificial.IA(jogo)
+ia.treina()
 jogo.jogar(0,0,0)
+jogo.jogar(1,0,0)
 jogo.jogar(1,1,1)
+jogo.jogar(2,0,0)
 jogo.jogar(2,2,2)
 jogo.exibir_tabuleiro()
