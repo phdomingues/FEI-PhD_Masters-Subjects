@@ -1,68 +1,61 @@
 # Std. lib
 import _pickle as pickle
+import random
 from datetime import datetime
 from itertools import product
 from typing import List, Tuple
 from pathlib import Path
+# 3rd. party
+import numpy as np
+# Local
+from jogo import Jogo
 
 class No:
-    def __init__(self,jogo):
-        self.jogo = jogo.copy()
+    def __init__(self,tabuleiro):
+        self.tabuleiro = tabuleiro.copy()
         self.filhos = []
         self.score = None
         self.melhor_movimento = None
         self.hash = None
 
 class Arvore:
-    def __init__(self, jogo:object) -> None:
-        self.raiz = No(jogo)
+    def __init__(self, tabuleiro:object) -> None:
+        self.raiz = No(tabuleiro)
         self.hashes_referencia = {}
 class IA:
-    def __init__(self,jogo:object, path_arvore:Path=Path(__file__).parent.absolute()/'IA') -> None:
-        self.jogo = jogo
-        self.arvore = Arvore(jogo)
+    def __init__(self,profundidade_maxima:int=3) -> None:
+        # self.arvore = Arvore(jogo.tabuleiro)
         self.mapa_score = {
-            jogo.Status.EMPATE: 0,
-            jogo.Status.VITORIA_X: 1,
-            jogo.Status.VITORIA_O: -1
+            Jogo.Status.EMPATE: 0,
+            Jogo.Status.VITORIA_X: 1,
+            Jogo.Status.VITORIA_O: -1
         }
-        self._path_arvore = path_arvore / f'arvore_{self.jogo.tamanho}.pkl'
-        try:
-            self.carregar(self._path_arvore)
-        except FileNotFoundError:
-            print('Arvore de decisao não encontrada')
-    def salvar(self) -> None:
-        self._path_arvore.parent.mkdir(parents=True, exist_ok=True)
-        with self._path_arvore.open('wb') as arquivo:
-            pickle.dump(self.arvore, arquivo, -1)
-    def carregar(self,path:Path) -> Arvore:
-        with path.open('rb') as arquivo:
-            self.arvore = pickle.load(arquivo)
-    def treina(self):
-        self.contador = 0
-        self.c2 = 0
-        start = datetime.now()
-        self.arvore.raiz.score = self._constroi_arvore(self.arvore.raiz)
-        print(f'Arvore construida em {datetime.now()-start}')
-        self.salvar()
+        self.profundidade_maxima = profundidade_maxima
+    def jogar(self, jogo):
+        arvore = Arvore(jogo.tabuleiro)
+        self._constroi_arvore(arvore.raiz,0,arvore.hashes_referencia)
+        jogada = self.jogada(arvore.raiz.tabuleiro, arvore.raiz.filhos[arvore.raiz.melhor_movimento].tabuleiro)
+        jogo.jogar(*jogada)
+    def jogada(self, tab1, tab2):
+        tamanho = len(tab1)
+        jogada = np.indices((tamanho,tamanho,tamanho))[:,(tab1!=tab2)].flatten()
+        return tuple(jogada)
     def _hash_no(self, no:No) -> int:
-        return hash(tuple(no.jogo.tabuleiro.flatten()))
-    def _constroi_arvore(self, no:No) -> None:
-        self.contador = (self.contador + 1) % 100000
-        if self.contador == 0:
-            self.c2 += 1
-            print(f"Checkpoint... Salvando arvore [{self.c2}]")
-            self.salvar()
+        return hash(tuple(no.tabuleiro.flatten()))
+    def _constroi_arvore(self, no:No, nr:int,hashes_referencia:dict) -> None:
+        if nr > self.profundidade_maxima:
+            return 0
         # Constroi a arvore
-        for jogada in self._gera_jogadas_validas(no.jogo.tabuleiro):
+        for jogada in self._gera_jogadas_validas(no.tabuleiro):
             try: # Se a jogada ja foi feita antes, simplesmente volte o score dela
-                return self.arvore.hashes_referencia[self._hash_no(no)].score
+                return hashes_referencia[self._hash_no(no)].score
             except KeyError: # Caso contrario precisamos computar
-                novo_no = No(no.jogo)
+                novo_no = No(no.tabuleiro)
+                novo_no.jogada = jogada
             try:
-                novo_no.jogo.jogar(*jogada)
-                score = self._constroi_arvore(novo_no)
-            except no.jogo.JogoFinalizado as jf:
+                novo_no.tabuleiro = Jogo.simular_jogada(*jogada,novo_no.tabuleiro)
+                score = self._constroi_arvore(novo_no,nr+1,hashes_referencia)
+            except Jogo.JogoFinalizado as jf:
                 score = self.mapa_score[jf.status]
             novo_no.score = score # Salva score do No
             novo_no.hash = self._hash_no(novo_no) # Salva hash do No
@@ -70,13 +63,13 @@ class IA:
         # Gera um vetor com os scores dos nos filhos, para facilitar o tratamento
         score_filhos = [filho.score for filho in no.filhos]
         # Descobre se deve maximizar ou minimizar o score
-        f = max if no.jogo.celulas[no.jogo.jogador] == 'X' else min
-        # Encontra o filho que produz o melhor resultado
-        no.melhor_movimento = score_filhos.index(f(score_filhos))
+        f = max if Jogo.celulas[Jogo.proximo_jogador(no.tabuleiro)] == 'X' else min
+        # Encontra o filho que produz o melhor resultado (caso mais de um produzam o mesmo score, sorteia um aleatoriamente)
+        no.melhor_movimento = random.sample([i for i, scr in enumerate(score_filhos) if scr==f(score_filhos)], 1)[0]
         # Gera e salva a hash desta jogada
-        no.hash = hash(tuple(no.jogo.tabuleiro.flatten()))
+        no.hash = hash(tuple(no.tabuleiro.flatten()))
         # Salva o No na lista de nos conhecidos
-        self.arvore.hashes_referencia[novo_no.hash] = novo_no
+        hashes_referencia[no.hash] = no
         # Calcula e retorna o score do No atual (soma dos scores dos filhos)
         return sum(score_filhos)
     def _gera_jogadas_validas(self, tabuleiro) -> List[Tuple[int]]:
