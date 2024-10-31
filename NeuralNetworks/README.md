@@ -3,3 +3,4 @@
 1. **Atv01-Perceptron:** Perceptron programmed from scratch using only numpy;
 2. **Atv02-MLP:** Multi-Layer Perceptron from scratch using only numpy;
 3. **Atv03-MLP-Images:** Multi-Layer Perceptron using Tensorflow-Keras applied to images;
+4. **Atv04-GLWPT:** Greedy Layer-Wise Pre-Training;
